@@ -136,6 +136,7 @@ module Beaker
         @logger.debug "created Vagrantfile for VagrantHost #{host.name}"
       end
       v_file << "end\n"
+      FileUtils.mkdir_p(@vagrant_path)
       File.open(@vagrant_file, 'w') do |f|
         f.write(v_file)
       end
@@ -181,6 +182,8 @@ module Beaker
     end
 
     def set_ssh_config host, user
+      return unless Dir.exist?(@vagrant_path)
+
       f = Tempfile.new("#{host.name}")
       ssh_config = Dir.chdir(@vagrant_path) do
         stdin, stdout, stderr, wait_thr = Open3.popen3(@vagrant_env, 'vagrant', 'ssh-config', host.name)
@@ -233,7 +236,6 @@ module Beaker
       @temp_files = []
       @hosts = vagrant_hosts
       @vagrant_path = File.expand_path(File.join(File.basename(__FILE__), '..', '.vagrant', 'beaker_vagrant_files', File.basename(options[:hosts_file])))
-      FileUtils.mkdir_p(@vagrant_path)
       @vagrant_file = File.expand_path(File.join(@vagrant_path, "Vagrantfile"))
       @vagrant_env = { "RUBYLIB" => "", "RUBYOPT" => "" }
     end
